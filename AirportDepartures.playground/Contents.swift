@@ -16,8 +16,8 @@ import UIKit
 //: e. Use a `String?` for the Terminal, since it may not be set yet (i.e.: waiting to arrive on time)
 //:
 //: f. Use a class to represent a `DepartureBoard` with a list of departure flights, and the current airport
-enum FlightStatus {
-    case enRoute, scheduled, canceled, delayed
+enum FlightStatus: String {
+    case enRoute, scheduled, canceled, delayed, boarding
 }
 
 struct Airport {
@@ -29,6 +29,7 @@ struct Flight {
     let airline: String
     let departure: Date?
     let terminal: String?
+    let status: FlightStatus
 }
 class DepartureBoard {
     let airport: Airport
@@ -36,6 +37,26 @@ class DepartureBoard {
     init(airport:Airport, flights:[Flight]) {
         self.airport = airport
         self.flights = flights
+    }
+    func alertPassengers() {
+        var depart = Date()
+        var term = ""
+        for flight in flights{
+            if let d = flight.departure{
+                depart = d
+            }
+            if let t = flight.terminal{
+                term = t
+            }
+            switch flight.status {
+            case .scheduled:
+                print("Your flight to \(airport.name) is scheduled to depart at \(depart) from terminal: \(term)")
+            case .boarding:
+                print("Your flight is boarding, please head to terminal: \(term)")
+            default:
+                print("tbd")
+            }
+        }
     }
 }
 
@@ -50,7 +71,15 @@ class DepartureBoard {
 //: d. Make one of the flights have a `nil` terminal because it has not been decided yet.
 //:
 //: e. Stretch: Look at the API for [`DateComponents`](https://developer.apple.com/documentation/foundation/datecomponents?language=objc) for creating a specific time
+let flight1 = Flight(flightNumber: "a1", airline: "Delta", departure: Date(), terminal: "8", status: .scheduled)
+let flight2 = Flight(flightNumber: "a2", airline: "ValueJet", departure: Date(), terminal: "b", status: .enRoute)
+let flight3 = Flight(flightNumber: "a3", airline: "Delta", departure: nil, terminal: "4", status: .canceled)
 
+let flightArray = [flight1, flight2, flight3]
+
+let tampa = Airport(name: "Tampa International", code: "TPL")
+
+let newBoard = DepartureBoard(airport: tampa, flights: flightArray)
 
 
 //: ## 3. Create a free-standing function that can print the flight information from the `DepartureBoard`
@@ -61,7 +90,14 @@ class DepartureBoard {
 //: c. Make your `FlightStatus` enum conform to `String` so you can print the `rawValue` String values from the `enum`. See the [enum documentation](https://docs.swift.org/swift-book/LanguageGuide/Enumerations.html).
 //:
 //: d. Print out the current DepartureBoard you created using the function
+func printDepartures(board: DepartureBoard){
+    for flight in board.flights{
+        let status = flight.status.rawValue
+        print("Flight \(flight.flightNumber) has a status of \(status)")
+    }
+}
 
+printDepartures(board: newBoard)
 
 
 
@@ -79,8 +115,21 @@ class DepartureBoard {
 //:     Destination: Los Angeles Airline: Delta Air Lines Flight: KL 6966 Departure Time:  Terminal: 4 Status: Canceled
 //:     Destination: Rochester Airline: Jet Blue Airways Flight: B6 586 Departure Time: 1:26 PM Terminal:  Status: Scheduled
 //:     Destination: Boston Airline: KLM Flight: KL 6966 Departure Time: 1:26 PM Terminal: 4 Status: Scheduled
-
-
+func printDepartures2(board: DepartureBoard){
+    for flight in board.flights{
+        var date = Date()
+        var term: String = ""
+        if let unwrappeddate = flight.departure{
+            let newdate = unwrappeddate
+            date = newdate
+        }
+        if let unwrappedterm = flight.terminal{
+            term = unwrappedterm
+        }
+        print("Destination: \(board.airport), Airline \(flight.airline), Flight: \(flight.flightNumber), Time: \(date), Terminal: \(term), Status: \(flight.status.rawValue)")
+    }
+}
+printDepartures2(board: newBoard)
 
 //: ## 5. Add an instance method to your `DepatureBoard` class (above) that can send an alert message to all passengers about their upcoming flight. Loop through the flights and use a `switch` on the flight status variable.
 //: a. If the flight is canceled print out: "We're sorry your flight to \(city) was canceled, here is a $500 voucher"
